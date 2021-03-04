@@ -1,0 +1,20 @@
+{
+  "name": "pwccompany",
+  "version": "1.0.0",
+  "description": "PwC Company Task",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "md5": "^2.3.0",
+    "mongoose": "^5.11.18",
+    "mongoose-encryption": "^2.0.3"
+  }
+}
