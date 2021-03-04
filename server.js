@@ -143,7 +143,7 @@ app.post('/user' , function (req,res){
  app.post('/complaint' , function (req,res){
      let NewComplaint = new Complaint()
      NewComplaint.complaintText = req.body.complaintText ;
-     NewComplaint.complaintId = req.body.complaintType ;
+     NewComplaint.typeId = req.body.complaintType ;
      NewComplaint.complaintStatus = req.body.complaintStatus ;
 
      NewComplaint.save(function(err,SavedComplaint){
@@ -163,7 +163,7 @@ app.post('/user' , function (req,res){
      {
          path: 'typeId',
          model: 'Type',
-         select : 'typeName - id=0'
+         select : 'typeName'
      }
    ).exec(function(error,Complaints){
          if (error){
@@ -183,9 +183,7 @@ app.post('/user' , function (req,res){
 
     console.log(complaintId)
 
-    Complaint.updateOne({_id :complaintId} , {$set : {complaintText : req.body.complaintText ,
-    typeComplaintId : req.body.typeComplaintId ,
-    complaintStatus : req.body.complaintStatus }} , (err,Status) => {
+    Complaint.updateOne({_id :complaintId} , {$set : {complaintStatus : req.body.complaintStatus }} , (err,Status) => {
         if (err) {
             res.status(500).send({Error:'could not edit/ update'})
             console.log(err)
