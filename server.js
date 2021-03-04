@@ -1,11 +1,12 @@
 const express = require('express');
+const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+
 
 const md5 = require('md5');
 const jwt = require('jsonwebtoken');
 
-const app = express();
 
 
 // parse application/x-www-form-urlencoded
@@ -15,26 +16,28 @@ app.use(bodyParser.json())
 
 
 
-//Any one can access website (your IP) //allow proxy //* means all
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Methods", "*");
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+// //Any one can access website (your IP) //allow proxy //* means all
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Methods", "*");
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
 
 
 //Connection in mongoDB
 const db = mongoose.connect('mongodb://localhost/ComplaintCompany',{
     useNewUrlParser: true ,
     useUnifiedTopology: true
-})
+});
 
-
-const User = require('./model/user');
+//import all moduls files
+const User = require('./model/user')
+const Type = require('./model/type');
+const Complaint = require('./model/complaint');
 
 
 //Register user page
@@ -51,7 +54,7 @@ app.post('/user' , function (req,res){
    newUser.save(function(err, SavedUser) {
 
      if(err) {
-       res.status(500).send(err)
+       res.status(500).send({error:"Could not sign up"})
        console.log(err);
      }
      else {
@@ -97,17 +100,23 @@ app.post('/user' , function (req,res){
 //Login user Page
  app.get('/login' , function (req,res){
 
-   let Email = req.query.userEmail        //to send parameters to (get) >>>>> use ((query))
-   let Password = req.query.userPassword
-   //console.log(req);
+
+   console.log("In login Page");
+  // let Email = req.query.userEmail        //to send parameters to (get) >>>>> use ((query))
+  // let Password = req.query.userPassword
+   console.log(req);
+
+   let Email = req.body.userEmail
+   let Password = req.body.userPassword
+
    User.find({userEmail: Email}, function(err, UserFound) {
      if(err) {
-       res.status(500).send(err)
+       res.status(500).send({error:"Could not login"})
        console.log(err);
      }
 
      else {
-       if(UserFound[0].userPassword == md5(Password)) {
+       if (UserFound[0].userPassword == md5(Password)) {
          let token = jwt.sign({ userEmail: UserFound[0].userEmail , userIsAdmin: UserFound[0].userIsAdmin }, process.env.secret_code_token , { expiresIn: '1h' } );
          console.log(token)
 
@@ -121,14 +130,90 @@ app.post('/user' , function (req,res){
        }
 
        else {
-         res.send({message: "Wrong Password, please try again"})
+         res.send({message: "Wrong Username or Password, please try again"})
        }
      }
    })
  })
 
 
+//__________form Complaint part ____________//
 
+//Complaint form send data
+ app.post('/complaint' , function (req,res){
+     let NewComplaint = new Complaint()
+     NewComplaint.complaintText = req.body.complaintText ;
+     NewComplaint.complaintId = req.body.complaintType ;
+     NewComplaint.complaintStatus = req.body.complaintStatus ;
+
+     NewComplaint.save(function(err,SavedComplaint){
+         if (err) {
+             res.status(500).send({error:"Could not send complaint"})
+             console.log(err)
+         } else {
+             res.send(SavedComplaint)
+         }
+     })
+ })
+
+//get all complaint for admin page
+ app.get('/complaints' , function (req,res){
+
+     Complaint.find({}).populate(
+     {
+         path: 'typeId',
+         model: 'Type',
+         select : 'typeName - id=0'
+     }
+   ).exec(function(error,Complaints){
+         if (error){
+             res.status(500).send({Error:"Could not show complaints "})
+         } else {
+
+             res.send(Complaints);
+         }
+     })
+ })
+
+// update status for admin page
+ app.put('/editcomplaint' , function (req,res){
+
+    console.log('edit status');
+    let complaintId = req.body.complaintId
+
+    console.log(complaintId)
+
+    Complaint.updateOne({_id :complaintId} , {$set : {complaintText : req.body.complaintText ,
+    typeComplaintId : req.body.typeComplaintId ,
+    complaintStatus : req.body.complaintStatus }} , (err,Status) => {
+        if (err) {
+            res.status(500).send({Error:'could not edit/ update'})
+            console.log(err)
+        } else {
+            console.log('edit Status')
+            res.send(Status)
+        }
+    }
+)})
+    // ----- end form ----
+
+
+// selected type Complaint
+app.post('/type', function(req, res) {
+    let NewType = new Type()
+    NewType.typeName = req.body.typeName
+
+    NewType.save(function(err, SavedType) {
+      if(err) {
+        console.log(err)
+        res.status(500).send({error:"Couldn't add new type"})
+      }
+      else {
+        res.send(SavedType)
+        console.log('new type added');
+      }
+    })
+})
 
 //check port listening
 app.listen(4000, function() {

@@ -17,4 +17,4 @@ let user = new schema ({
 let secret = process.env.secret_code;
 user.plugin(encrypt, { secret: secret, encryptedFields: ['userPassword']});
 
-module.exports = mongoose.model ('User',user);
+module.exports = mongoose.model('User',user);
