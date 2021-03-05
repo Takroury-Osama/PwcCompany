@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
@@ -16,16 +17,16 @@ app.use(bodyParser.json())
 
 
 
-// //Any one can access website (your IP) //allow proxy //* means all
-// app.use(function(req, res, next) {
-//   res.header("Access-Control-Allow-Methods", "*");
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
+//Any one can access website (your IP) //allow proxy //* means all
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Methods", "*");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 
 //Connection in mongoDB
@@ -33,6 +34,9 @@ const db = mongoose.connect('mongodb://localhost/ComplaintCompany',{
     useNewUrlParser: true ,
     useUnifiedTopology: true
 });
+
+mongoose.set("useCreateIndex", true);
+app.use(cors());
 
 //import all moduls files
 const User = require('./model/user')
@@ -44,7 +48,6 @@ const Complaint = require('./model/complaint');
 app.post('/user' , function (req,res){
 
   console.log('In Register Page');
-
    let newUser = User()
    newUser.userName= req.body.userName
    newUser.userEmail= req.body.userEmail
@@ -52,7 +55,6 @@ app.post('/user' , function (req,res){
    newUser.userIsAdmin= req.body.userIsAdmin
 
    newUser.save(function(err, SavedUser) {
-
      if(err) {
        res.status(500).send({error:"Could not sign up"})
        console.log(err);
@@ -98,17 +100,18 @@ app.post('/user' , function (req,res){
  });
 
 //Login user Page
- app.get('/login' , function (req,res){
-
-
+ app.post('/login' , async function (req,res){
    console.log("In login Page");
   // let Email = req.query.userEmail        //to send parameters to (get) >>>>> use ((query))
   // let Password = req.query.userPassword
-   console.log(req);
+   let Email = await req.body.userEmail
+   let Password = await req.query.userPassword
 
-   let Email = req.body.userEmail
-   let Password = req.body.userPassword
+   console.log(req.body);
+   console.log("_______");
+   console.log(req.query);
 
+   console.log(req.body.userEmail);
    User.find({userEmail: Email}, function(err, UserFound) {
      if(err) {
        res.status(500).send({error:"Could not login"})
@@ -117,7 +120,7 @@ app.post('/user' , function (req,res){
 
      else {
        if (UserFound[0].userPassword == md5(Password)) {
-         let token = jwt.sign({ userEmail: UserFound[0].userEmail , userIsAdmin: UserFound[0].userIsAdmin }, process.env.secret_code_token , { expiresIn: '1h' } );
+         let token = jwt.sign({userEmail: UserFound[0].userEmail , userIsAdmin: UserFound[0].userIsAdmin }, process.env.secret_code_token , { expiresIn: '1h' } );
          console.log(token)
 
          let LoginRes = {
@@ -128,7 +131,6 @@ app.post('/user' , function (req,res){
          }
          res.send(LoginRes)
        }
-
        else {
          res.send({message: "Wrong Username or Password, please try again"})
        }
@@ -210,6 +212,17 @@ app.post('/type', function(req, res) {
         res.send(SavedType)
         console.log('new type added');
       }
+    })
+})
+
+app.get('/types' , function (req,res){
+    Type.find({} , function(error,Complaints){
+        if (error){
+            res.status(500).send({Error:"Coudn't get "})
+        } else {
+
+            res.send(Complaints);
+        }
     })
 })
 
