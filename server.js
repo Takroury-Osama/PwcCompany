@@ -20,6 +20,7 @@ app.use(bodyParser.json())
 //Any one can access website (your IP) //allow proxy //* means all
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Methods", "*");
+  res.header('Content-Type','application/x-www-form-urlencoded')
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -45,7 +46,7 @@ const Complaint = require('./model/complaint');
 
 
 //Register user page
-app.post('/user' , function (req,res){
+app.get('/user' , function (req,res){
 
   console.log('In Register Page');
    let newUser = User()
@@ -99,19 +100,22 @@ app.post('/user' , function (req,res){
    })
  });
 
+
+
 //Login user Page
- app.post('/login' , async function (req,res){
-   console.log("In login Page");
+ app.post('/login' , function (req,res){
+
+  // console.log("In login Page");
   // let Email = req.query.userEmail        //to send parameters to (get) >>>>> use ((query))
   // let Password = req.query.userPassword
-   let Email = await req.body.userEmail
-   let Password = await req.query.userPassword
+
+
+   let Email = req.body.userEmail
+   let Password = req.body.userPassword
+
+   var promise = new Promise(function (resolve, reject) {
 
    console.log(req.body);
-   console.log("_______");
-   console.log(req.query);
-
-   console.log(req.body.userEmail);
    User.find({userEmail: Email}, function(err, UserFound) {
      if(err) {
        res.status(500).send({error:"Could not login"})
@@ -127,7 +131,8 @@ app.post('/user' , function (req,res){
            token: token,
            userEmail: UserFound[0].userEmail,
            userName: UserFound[0].userName,
-           userIsAdmin: UserFound[0].userIsAdmin
+           userIsAdmin: UserFound[0].userIsAdmin,
+           userPassword: UserFound[0].userPassword
          }
          res.send(LoginRes)
        }
@@ -136,6 +141,7 @@ app.post('/user' , function (req,res){
        }
      }
    })
+    });
  })
 
 
@@ -144,6 +150,7 @@ app.post('/user' , function (req,res){
 //Complaint form send data
  app.post('/complaint' , function (req,res){
      let NewComplaint = new Complaint()
+     NewComplaint.complaintUserName = req.body.complaintUserName
      NewComplaint.complaintText = req.body.complaintText ;
      NewComplaint.typeId = req.body.complaintType ;
      NewComplaint.complaintStatus = req.body.complaintStatus ;
@@ -161,6 +168,7 @@ app.post('/user' , function (req,res){
 //get all complaint for admin page
  app.get('/complaints' , function (req,res){
 
+
      Complaint.find({}).populate(
      {
          path: 'typeId',
@@ -176,6 +184,25 @@ app.post('/user' , function (req,res){
          }
      })
  })
+
+ app.get('/editcomplaint' , function (req,res){
+
+    console.log('edit status');
+    let complaintId = req.body.complaintId
+
+    console.log(complaintId)
+
+    Complaint.updateOne({_id :complaintId} , {$set : {complaintStatus : req.body.complaintStatus }} , (err,Status) => {
+        if (err) {
+            res.status(500).send({Error:'could not edit/ update'})
+            console.log(err)
+        } else {
+            console.log('edit Status')
+            res.send(Status)
+        }
+    }
+)})
+
 
 // update status for admin page
  app.put('/editcomplaint' , function (req,res){
