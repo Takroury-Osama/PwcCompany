@@ -46,7 +46,7 @@ const Complaint = require('./model/complaint');
 
 
 //Register user page
-app.get('/user' , function (req,res){
+app.post('/user' , function (req,res){
 
   console.log('In Register Page');
    let newUser = User()
@@ -102,7 +102,7 @@ app.get('/user' , function (req,res){
 
 
 
-//Login user Page
+//Login user Page with check data
  app.post('/login' , function (req,res){
 
   // console.log("In login Page");
@@ -145,7 +145,7 @@ app.get('/user' , function (req,res){
  })
 
 
-//__________form Complaint part ____________//
+//__________  form Complaint part  ____________//
 
 //Complaint form send data
  app.post('/complaint' , function (req,res){
@@ -154,6 +154,7 @@ app.get('/user' , function (req,res){
      NewComplaint.complaintText = req.body.complaintText ;
      NewComplaint.typeId = req.body.complaintType ;
      NewComplaint.complaintStatus = req.body.complaintStatus ;
+  //   NewComplaint.userComplaintId = req.body.userComplaintId
 
      NewComplaint.save(function(err,SavedComplaint){
          if (err) {
@@ -168,7 +169,7 @@ app.get('/user' , function (req,res){
 //get all complaint for admin page
  app.get('/complaints' , function (req,res){
 
-
+   //to return data from <<type module>>
      Complaint.find({}).populate(
      {
          path: 'typeId',
@@ -185,23 +186,41 @@ app.get('/user' , function (req,res){
      })
  })
 
- app.get('/editcomplaint' , function (req,res){
 
-    console.log('edit status');
-    let complaintId = req.body.complaintId
+ app.get('/usercomplaint' , function (req,res){
 
-    console.log(complaintId)
+   console.log('get specific data for user usercomplaint');
+   let userId = req.body.userId
 
-    Complaint.updateOne({_id :complaintId} , {$set : {complaintStatus : req.body.complaintStatus }} , (err,Status) => {
-        if (err) {
-            res.status(500).send({Error:'could not edit/ update'})
-            console.log(err)
-        } else {
-            console.log('edit Status')
-            res.send(Status)
-        }
-    }
-)})
+   console.log(complaintId)
+     Complaint.find({_id: userId}).populate(
+     {
+         path: 'typeId',
+         model: 'Type',
+         select : 'typeName'
+     }
+   ).exec(function(error,UserComplaint){
+         if (error){
+             res.status(500).send({Error:"Could not show user complaint "})
+         } else {
+
+             res.send(UserComplaint);
+         }
+     })
+ })
+
+
+
+// app.get('/usercomplaint/:ID' , function (req,res){
+//     let userId = req.params.ID
+//     Complaint.find({_id:userId},(err,Usercoplaint)=>{
+//         if(err) {
+//             res.status(500).send({error:"Could not find user complaint"})
+//         } else {
+//             res.send(Usercoplaint)
+//         }
+//     })
+// })
 
 
 // update status for admin page

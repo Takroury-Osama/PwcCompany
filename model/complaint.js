@@ -6,11 +6,11 @@ let schema = mongoose.Schema;
 
 let complaint = new schema ({
 
-
   complaintUserName: String,
   complaintText: String,
   typeId: { type: objectId , ref:'type' },
-  complaintStatus: String
+  complaintStatus: String,
+  //userComplaintId: { type: objectId , ref:'user' }
 })
 
 
