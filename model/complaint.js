@@ -10,7 +10,7 @@ let complaint = new schema ({
   complaintText: String,
   typeId: { type: objectId , ref:'type' },
   complaintStatus: String,
-  //userComplaintId: { type: objectId , ref:'user' }
+  userComplaintId: { type: objectId , ref:'user' }
 })
 
 
