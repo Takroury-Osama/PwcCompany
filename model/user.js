@@ -11,7 +11,7 @@ let user = new schema ({
   userEmail: String,
   userPassword: String,
   userName: String,
-  userIsAdmin: Boolean,
+  userIsAdmin: Boolean
 })
 
 let secret = process.env.secret_code;
