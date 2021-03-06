@@ -151,10 +151,10 @@ app.post('/user' , function (req,res){
  app.post('/complaint' , function (req,res){
      let NewComplaint = new Complaint()
      NewComplaint.complaintUserName = req.body.complaintUserName
-     NewComplaint.complaintText = req.body.complaintText;
-     NewComplaint.typeId = req.body.complaintType;
-     NewComplaint.complaintStatus = "Pending";
-     NewComplaint.userComplaintId = req.body.userComplaintId
+     NewComplaint.complaintText = req.body.complaintText ;
+     NewComplaint.typeId = req.body.complaintType ;
+     NewComplaint.complaintStatus = req.body.complaintStatus ;
+  //   NewComplaint.userComplaintId = req.body.userComplaintId
 
      NewComplaint.save(function(err,SavedComplaint){
          if (err) {
@@ -224,10 +224,10 @@ app.post('/user' , function (req,res){
 
 
 // update status for admin page
- app.put('/editcomplaint/:ID' , function (req,res){
+ app.put('/editcomplaint' , function (req,res){
 
     console.log('edit status');
-    let complaintId = req.params.ID
+    let complaintId = req.body.complaintId
 
     console.log(complaintId)
 
