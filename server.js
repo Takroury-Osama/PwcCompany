@@ -153,7 +153,7 @@ app.post('/user' , function (req,res){
      NewComplaint.complaintUserName = req.body.complaintUserName
      NewComplaint.complaintText = req.body.complaintText ;
      NewComplaint.typeId = req.body.complaintType ;
-     NewComplaint.complaintStatus = req.body.complaintStatus ;
+     NewComplaint.complaintStatus = "Pending" ;
   //   NewComplaint.userComplaintId = req.body.userComplaintId
 
      NewComplaint.save(function(err,SavedComplaint){
@@ -195,9 +195,9 @@ app.post('/user' , function (req,res){
    console.log(complaintId)
      Complaint.find({_id: userId}).populate(
      {
-         path: 'typeId',
-         model: 'Type',
-         select : 'typeName'
+         path: 'userComplaintId',
+         model: 'User',
+         select : 'userName'
      }
    ).exec(function(error,UserComplaint){
          if (error){
